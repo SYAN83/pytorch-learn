@@ -1,19 +1,26 @@
 import torch
-from .base import BaseEstimator
-from .metrics import r2_score
+from .base import BaseEstimator, RegressorMixin
 from .utils import set_device
 
 
-def make_dataset(X, y=None, fit_intercept=False, device=torch.device('cpu')):
-    x = X.to(device)
+def make_dataset(X, y=None, fit_intercept=False, device=None):
+    if device is None:
+        device = X.device
+    else:
+        X = X.to(device)
     if fit_intercept:
-        x = torch.cat((x, torch.ones((X.size(0), 1), device=device)), 1)
-    if y is not None:
-        y = y.to(x.dtype).to(x.device)
-    return x, y
+        X = torch.cat((X, torch.ones((X.size(0), 1), device=device)), 1)
+    if y is None:
+        return X
+    else:
+        assert X.size(0) == y.size(0), 'X and y do not have the same size.'
+        y = y.to(X.dtype).to(X.device)
+        if y.dim() == 1:
+            y = y.view(-1, 1)
+        return X, y
 
 
-class LinearRegression(BaseEstimator):
+class LinearRegression(BaseEstimator, RegressorMixin):
     
     def __init__(self, fit_intercept=True, normalize=False, device='cuda', verbose=True):
         self.fit_intercept = fit_intercept
@@ -31,15 +38,12 @@ class LinearRegression(BaseEstimator):
         self.coef_ = self._betas.cpu().numpy()[:X.size(0)]
         if self.fit_intercept:
             self.intercept_ = self._betas.cpu().numpy()[-1]
+        return self
     
     def predict(self, X):
-        x, _ = make_dataset(X, device=self.device)
+        x = make_dataset(X, device=self.device)
         if self.fit_intercept:
             x = torch.cat((x, torch.ones((X.size(0), 1), device=self.device)), 1)
         y_pred = x @ self._betas
         return y_pred
-    
-    def score(self, X, y):
-        y_pred = self.predict(X)
-        score_ = r2_score(y_true=y, y_pred=y_pred)
-        return score_
+

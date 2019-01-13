@@ -84,7 +84,8 @@ class BaseEstimator(object):
 
 class RegressorMixin(object):
 
-    def score(self, dataset):
-        from ..metrics import r2_score
-        return r2_score(dataset.y, self.predict(dataset))
-
+    def score(self, X, y):
+        from .metrics import r2_score
+        y_pred = self.predict(X)
+        score_ = r2_score(y_true=y, y_pred=y_pred)
+        return score_
