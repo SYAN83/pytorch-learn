@@ -32,8 +32,8 @@ class LinearRegression(BaseEstimator, RegressorMixin):
         self.intercept_ = None
         
     def fit(self, X, y):
-        x, y = make_dataset(X, y, device=self.device)
-        
+        x, y = make_dataset(X, y, fit_intercept=self.fit_intercept, device=self.device)
+        # compute betas using normal equation
         self._betas = (x.t() @ x).inverse() @ x.t() @ y
         self.coef_ = self._betas.cpu().numpy()[:X.size(0)]
         if self.fit_intercept:
@@ -41,9 +41,7 @@ class LinearRegression(BaseEstimator, RegressorMixin):
         return self
     
     def predict(self, X):
-        x = make_dataset(X, device=self.device)
-        if self.fit_intercept:
-            x = torch.cat((x, torch.ones((X.size(0), 1), device=self.device)), 1)
+        x = make_dataset(X, fit_intercept=self.fit_intercept, device=self.device)
         y_pred = x @ self._betas
         return y_pred
 
