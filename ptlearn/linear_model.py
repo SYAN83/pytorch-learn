@@ -1,3 +1,4 @@
+
 import torch
 from .base import BaseEstimator, RegressorMixin
 from .preprocessing import Normalizer
@@ -38,30 +39,34 @@ class LinearRegression(BaseEstimator, RegressorMixin):
         self.intercept_ = None
         
     def fit(self, X, y):
-        x, y = make_dataset(X, y, fit_intercept=self.fit_intercept,
-                            normalizer=self.normalizer, fit_normalizer=True,
-                            device=self.device)
+        x_, y_ = make_dataset(X, y, fit_intercept=self.fit_intercept,
+                              normalizer=self.normalizer, fit_normalizer=True,
+                              device=self.device)
         # compute betas using normal equation
         # self._betas = (x.t() @ x).inverse() @ x.t() @ y
         # compute betas using pseudo inverse of X
-        self._betas = X.pinverse() @ y
-        self.coef_ = self._betas.cpu().numpy()[:X.size(0)]
+        self._betas = x_.pinverse() @ y_
+        _betas = self._betas.t().cpu().numpy()
         if self.fit_intercept:
-            self.intercept_ = self._betas.cpu().numpy()[-1]
+            self.coef_ = _betas[:, :-1]
+            self.intercept_ = _betas[:, -1]
         else:
+            self.coef_ = _betas
             self.intercept_ = None
         return self
     
     def predict(self, X):
-        x = make_dataset(X, fit_intercept=self.fit_intercept,
-                         normalizer=self.normalizer, fit_normalizer=False,
-                         device=self.device)
-        y_pred = x @ self._betas
+        x_ = make_dataset(X, fit_intercept=self.fit_intercept,
+                          normalizer=self.normalizer, fit_normalizer=False,
+                          device=self.device)
+        y_pred = x_ @ self._betas
         return y_pred
 
 
 class Lasso(LinearRegression):
 
-    def __init__(self, alpha=1.0, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, alpha=1.0, fit_intercept=True, normalize=False, device='cuda', verbose=True):
+        super().__init__(fit_intercept=fit_intercept, normalize=normalize, device=device, verbose=verbose)
         self.alpha = alpha
+
+
