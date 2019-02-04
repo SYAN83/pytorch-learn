@@ -17,7 +17,7 @@ class Normalizer(BaseEstimator):
         if self.mean_ is None:
             self.mean_ = X.mean(dim=0)
         if self.std_ is None:
-            self.std_ = (X.var(dim=0) - .1).sqrt()
+            self.std_ = (X.var(dim=0) - self.eps).sqrt()
         return self
 
     def transform(self, X):
