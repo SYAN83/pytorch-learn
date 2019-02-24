@@ -1,5 +1,8 @@
-from .regressions import r2_score
+from .regression import mae, mse, r2_score
+
 
 __all__ = [
+    'mae',
+    'mse',
     'r2_score'
 ]

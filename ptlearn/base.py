@@ -1,6 +1,7 @@
 from inspect import signature
 from collections import defaultdict
 from pprint import pprint
+from .metrics import mae, mse, r2_score
 
 
 class BaseEstimator(object):
@@ -84,8 +85,19 @@ class BaseEstimator(object):
 
 class RegressorMixin(object):
 
-    def score(self, X, y):
-        from .metrics import r2_score
+    score_functions = {
+        'mae': mae,
+        'mse': mse,
+        'r2_score': r2_score,
+    }
+
+    def score(self, X, y, score_func='r2_score', **kwargs):
         y_pred = self.predict(X)
-        score_ = r2_score(y_true=y, y_pred=y_pred)
+        if score_func is None:
+            score_func = self.score_functions['r2_score']
+        elif isinstance(score_func, str):
+            score_func = self.score_functions[score_func]
+        elif not callable(score_func):
+            raise ValueError('score_func is neither available nor callable')
+        score_ = score_func(y_true=y, y_pred=y_pred, **kwargs)
         return score_

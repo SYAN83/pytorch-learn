@@ -2,7 +2,7 @@ from setuptools import setup
 import re
 
 
-APP_NAME = 'pytorch-learn'
+APP_NAME = 'ptlearn'
 VERSION = '0.1'
 
 
