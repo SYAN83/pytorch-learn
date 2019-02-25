@@ -11,8 +11,7 @@ class SGDBaseEstimator(BaseEstimator):
     loss_fn = None
     losses = None
 
-    def __init__(self, alpha=0, fit_intercept=True, batch_size=-1, shuffle=True, max_iter=1000, device='cuda:0', verbose=True):
-        self.alpha = alpha
+    def __init__(self, fit_intercept=True, batch_size=-1, shuffle=True, max_iter=1000, device='cuda:0', verbose=True):
         self.fit_intercept = fit_intercept
         self.batch_size = batch_size
         self.shuffle = shuffle
@@ -35,7 +34,7 @@ class SGDBaseEstimator(BaseEstimator):
             epoch_loss_tot = 0
             for X_, y_ in dataloader:
                 y_pred = self.model(X_)
-                loss = self.loss_fn(y_pred, y_) + self.alpha * self.model.linear.weight.pow(2).sum()
+                loss = self.loss_fn(y_pred, y_)
                 epoch_loss_tot += loss.item()
                 self.optimizer.zero_grad()
                 loss.backward()
